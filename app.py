@@ -31,6 +31,20 @@ st.markdown("Generate and upload high-retention TikToks and Shorts in **seconds*
 # Input Section
 topic = st.text_input("What is your video about?", placeholder="e.g. Why Drop Shipping is Dead")
 
+# Debug Toggle
+debug_mode = st.expander("🛠️ Advanced Settings / Debug")
+with debug_mode:
+    show_logs = st.checkbox("Show internal logs on failure", value=True)
+    if st.button("Test API Connectivity"):
+        with st.spinner("Checking API..."):
+            test_key = os.getenv("OPENAI_API_KEY")
+            if test_key and isinstance(test_key, str):
+                st.write(f"Key found (starts with: {test_key[:5]}...)")
+            elif test_key:
+                st.write("Key found but is not a string.")
+            else:
+                st.error("No API key found in secrets!")
+
 generate_btn = st.button("Generate Video", type="primary")
 
 # Persist output file across interactions
@@ -45,9 +59,17 @@ if generate_btn:
         
         # 1. Scripts
         with st.status("📝 Step 1: Crafting Viral Script & Scenes...", expanded=True) as status:
-            scenes = generate_script_and_prompts(topic)
-            if not scenes:
-                status.update(label="Failed to generate script.", state="error")
+            try:
+                scenes = generate_script_and_prompts(topic)
+                if not scenes:
+                    status.update(label="Failed to generate script (No response).", state="error")
+                    st.error("The AI failed to return a script. Check your API key or model availability.")
+                    st.stop()
+            except Exception as e:
+                status.update(label=f"Script Error: {type(e).__name__}", state="error")
+                st.error(f"Error during script generation: {str(e)}")
+                if show_logs:
+                    st.exception(e)
                 st.stop()
             
             script = " ".join([scene["text"] for scene in scenes])
