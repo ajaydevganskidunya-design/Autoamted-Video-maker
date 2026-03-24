@@ -1,0 +1,20 @@
+# Environment variables (KEEP SECRET!)
+.env
+client_secrets.json
+token.json
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Videos and temp assets
+*.mp4
+*.mp3
+*.wav
+*.json
+temp_voiceover.json
+temp_*/
+
+# System files
+.DS_Store
