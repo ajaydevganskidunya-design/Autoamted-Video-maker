@@ -4,6 +4,16 @@ import time
 import re
 from moviepy import AudioFileClip # type: ignore
 
+try:
+    if "OPENAI_API_KEY" in st.secrets:
+        os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+    if "ELEVENLABS_API_KEY" in st.secrets:
+        os.environ["ELEVENLABS_API_KEY"] = st.secrets["ELEVENLABS_API_KEY"]
+    if "PEXELS_API_KEY" in st.secrets:
+        os.environ["PEXELS_API_KEY"] = st.secrets["PEXELS_API_KEY"]
+except Exception:
+    pass # Not running on Streamlit Cloud
+
 # Import our custom YouTube Automation modules
 from script_generator import generate_script_and_prompts # type: ignore
 from audio_generator import generate_audio # type: ignore

@@ -16,10 +16,10 @@ def generate_script_and_prompts(topic):
     if api_key.startswith("AIza"):
         base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
         models_to_try = [
-            "gemini-2.5-flash", 
-            "gemini-2.0-flash", 
-            "gemini-1.5-flash"
+            "gemini-1.5-flash", 
+            "gemini-2.0-flash"
         ]
+        use_json_mode = False # Gemini OpenAI relay often fails with response_format
     # Handle OpenRouter
     elif api_key.startswith("sk-or-v1"):
         base_url = "https://openrouter.ai/api/v1"
@@ -29,10 +29,12 @@ def generate_script_and_prompts(topic):
             "google/gemma-3-12b-it:free",
             "openrouter/free"
         ]
+        use_json_mode = True
     # Handle Native OpenAI
     else:
         base_url = None
         models_to_try = ["gpt-4o-mini"]
+        use_json_mode = True
 
     client = OpenAI(
         api_key=api_key,
@@ -59,12 +61,16 @@ Reply ONLY with valid, parsable JSON. No conversational text.
     for model in models_to_try:
         try:
             print(f"  -> Attempting with AI model: {model}...")
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-                response_format={"type": "json_object"}
-            )
+            
+            call_kwargs = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.7
+            }
+            if use_json_mode:
+                call_kwargs["response_format"] = {"type": "json_object"}
+            
+            response = client.chat.completions.create(**call_kwargs)
             
             message = response.choices[0].message
             if not message.content:
